@@ -15,3 +15,6 @@ desktop.ini
 
 # Local working copies, not part of the published app
 artifact/
+
+# Playwright MCP snapshots and console logs
+.playwright-mcp/
