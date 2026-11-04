@@ -6,6 +6,10 @@ A single-file Kanban board for an IT Project Management Office, built for intern
 
 **Live demo:** https://ekuantan.github.io/it-pmo-kanban/
 
+![IT PMO Kanban board showing the Backlog, In Progress, Blocked and Done columns](docs/screenshot.png)
+
+*Screenshot of the live site, captured with Playwright at 1440×900.*
+
 ## Features
 
 - **Four columns:** Backlog, In Progress, Blocked and Done, each with a count badge, plus a header summary of the board.
