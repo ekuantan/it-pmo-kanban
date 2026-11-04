@@ -1,0 +1,63 @@
+# Static checks for the single-file app. pages.yml deploys only after this passes on main.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history for the secret scan
+
+      - name: HTML sanity
+        run: |
+          set -e
+          test -f index.html || { echo "::error::index.html is missing"; exit 1; }
+          head -c 15 index.html | grep -qi '^<!DOCTYPE html>' || { echo "::error::index.html must start with <!DOCTYPE html>"; exit 1; }
+          for tag in script style; do
+            open=$(grep -oiE "<${tag}[ >]" index.html | wc -l)
+            close=$(grep -oi "</${tag}>" index.html | wc -l)
+            echo "<${tag}>: ${open} open, ${close} close"
+            [ "$open" -eq "$close" ] || { echo "::error::Unbalanced <${tag}> tags"; exit 1; }
+          done
+
+      - name: Constraint check (no storage, no alert/confirm, no !important)
+        run: |
+          if grep -nE 'localStorage|sessionStorage|indexedDB|document\.cookie|!important|alert\(|confirm\(' index.html; then
+            echo "::error::index.html uses a forbidden API or !important (see CLAUDE.md)"
+            exit 1
+          fi
+
+      - name: Only allowed network call is FORMSUBMIT_ENDPOINT
+        run: |
+          if grep -nE 'https?://' index.html | grep -v 'FORMSUBMIT_ENDPOINT'; then
+            echo "::error::Found a URL other than FORMSUBMIT_ENDPOINT"
+            exit 1
+          fi
+
+      - name: No external resources
+        run: |
+          if grep -niE '<script[^>]+src=|<link[^>]+href=["'"'"']?https?:|@import|<img[^>]+src=["'"'"']?https?:' index.html; then
+            echo "::error::External scripts, stylesheets, fonts or images are not allowed"
+            exit 1
+          fi
+
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

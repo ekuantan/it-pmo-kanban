@@ -1,0 +1,17 @@
+# Secrets and keys
+.env
+.env.*
+*.pem
+*.key
+*.p12
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local Claude Code settings (personal, not shared)
+.claude/settings.local.json
+
+# Local working copies, not part of the published app
+artifact/

@@ -1,8 +1,10 @@
-# Deploys the static site (index.html) to GitHub Pages on every push to main.
+# Deploys the static site (index.html) to GitHub Pages after CI passes on main.
 name: Deploy to GitHub Pages
 
 on:
-  push:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
     branches: [main]
   workflow_dispatch:
 
@@ -17,14 +19,22 @@ concurrency:
 
 jobs:
   deploy:
+    # Only deploy when CI succeeded for a push to main (or when run by hand)
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push')
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Deploy exactly the commit CI checked
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
-      # Requires Settings → Pages → Source: "GitHub Actions" (one-time)
+      # Requires Settings → Pages → Source: "GitHub Actions"
       - uses: actions/configure-pages@v5
 
       # Publish only the app itself, not repo docs or workflow files
