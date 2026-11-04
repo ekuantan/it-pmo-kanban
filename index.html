@@ -464,12 +464,13 @@ main {
 .assignee { display: inline-flex; align-items: center; gap: var(--sp-2); min-width: 0; color: var(--ink-2); font-weight: 500; }
 .assignee-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .avatar {
-  width: 24px; height: 24px; flex: none;
-  display: grid; place-items: center;
+  width: 34px; height: 34px; flex: none;
+  display: block;
   border-radius: 50%;
-  background: var(--avatar-bg); color: var(--avatar-ink);
-  font-size: 10.5px; font-weight: 700; letter-spacing: .02em;
+  transition: transform var(--dur) var(--ease-out), filter var(--dur) var(--ease);
 }
+.avatar svg { display: block; width: 100%; height: 100%; }
+.card:hover .avatar { transform: rotate(-6deg) scale(1.08); filter: drop-shadow(0 0 6px rgba(34, 211, 238, .55)); }
 .due { display: inline-flex; align-items: center; gap: 5px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .due.is-overdue { color: var(--crit-ink); font-weight: 600; }
 .badge-overdue { background: var(--crit-bg); color: var(--crit-ink); border-color: var(--danger-line); }
@@ -978,13 +979,90 @@ function formatDate(iso) {
 
 function slug(s) { return s.toLowerCase().replace(/[^a-z0-9]+/g, "-"); }
 
-/** Up to two initials for the assignee avatar. */
-function initials(name) {
-  const parts = String(name).trim().split(/\s+/).filter(Boolean);
-  if (!parts.length) return "?";
-  const first = parts[0].charAt(0);
-  const last = parts.length > 1 ? parts[parts.length - 1].charAt(0) : "";
-  return (first + last).toUpperCase();
+/* =========================================================
+   AVATARS — original cartoon "brawler" heads drawn as inline SVG.
+   Parts are picked deterministically from a hash of the assignee's
+   name, so each person always gets the same face. Only constants
+   below are interpolated into the SVG; the name is never inserted.
+   ========================================================= */
+const AV_OUTLINE = "#0a0a14";
+const AV_SKIN  = ["#ffd9c2", "#f5c49c", "#e0ac7e", "#c68654", "#a8693f", "#7d4a2c"];
+const AV_HAIR  = ["#ff2bd6", "#22d3ee", "#39ff88", "#ffb020", "#a78bfa", "#ff3d6e", "#2b2f45", "#f8fafc"];
+const AV_RING  = ["#22d3ee", "#ff2bd6", "#a78bfa", "#39ff88", "#ffb020", "#ff3d6e"];
+
+const AV_TOPS = [
+  // spiky
+  function (c) { return '<path d="M9 22 L9.5 13 L13 16 L14.5 8.5 L18 13.5 L21 6.5 L23 13 L27 8.5 L27 15 L31 12.5 L31 22 Q20 15 9 22Z" fill="' + c.hair + '"/>'; },
+  // cap with brim
+  function (c) { return '<path d="M9 20 Q9 10 20 10 Q31 10 31 20Z" fill="' + c.hair + '"/><path d="M20 18.5 H35.5 Q35.5 22 31.5 22 H20Z" fill="' + c.hair + '"/><circle cx="20" cy="10.2" r="1.6" fill="' + c.ring + '"/>'; },
+  // beanie with pom-pom
+  function (c) { return '<path d="M9 19 Q9 9 20 9 Q31 9 31 19Z" fill="' + c.hair + '"/><rect x="8" y="16.5" width="24" height="4.5" rx="2.2" fill="#e6f1ff"/><circle cx="20" cy="7.6" r="2.8" fill="#e6f1ff"/>'; },
+  // mohawk
+  function (c) { return '<path d="M16.5 14 L17.5 4 L19.8 8 L22 3 L23.5 14Z" fill="' + c.hair + '"/>'; },
+  // top bun + fringe
+  function (c) { return '<circle cx="20" cy="9.5" r="4.6" fill="' + c.hair + '"/><path d="M9 22 Q10 11 20 11.5 Q30 11 31 22 Q26 15.5 20 16.5 Q14 15.5 9 22Z" fill="' + c.hair + '"/>'; },
+  // headband
+  function (c) { return '<path d="M9 21 Q10 11 20 11 Q30 11 31 21 Q25 14.5 20 15.5 Q15 14.5 9 21Z" fill="' + c.hair + '"/><rect x="9" y="16" width="22" height="3.6" rx="1.6" fill="' + c.ring + '"/><path d="M30.5 17 L36.5 14.5 L35.5 20.5Z" fill="' + c.ring + '"/>'; },
+  // horned helmet
+  function (c) { return '<path d="M12 15 Q7 11 7.5 5 Q11 10 15 12Z" fill="#e6f1ff"/><path d="M28 15 Q33 11 32.5 5 Q29 10 25 12Z" fill="#e6f1ff"/><path d="M9 20 Q9 10 20 10 Q31 10 31 20Z" fill="' + c.hair + '"/><path d="M20 10 V20" stroke="' + AV_OUTLINE + '" stroke-width="1.4"/>'; }
+];
+
+const AV_EYES = [
+  // dots
+  function () { return '<circle cx="16" cy="23" r="1.8" fill="' + AV_OUTLINE + '"/><circle cx="24" cy="23" r="1.8" fill="' + AV_OUTLINE + '"/>'; },
+  // determined brows
+  function () { return '<circle cx="16" cy="23.5" r="1.7" fill="' + AV_OUTLINE + '"/><circle cx="24" cy="23.5" r="1.7" fill="' + AV_OUTLINE + '"/><path d="M13.5 19.8 L18 21.3M26.5 19.8 L22 21.3" stroke="' + AV_OUTLINE + '" stroke-width="1.8" stroke-linecap="round"/>'; },
+  // neon visor
+  function (c) { return '<rect x="11.5" y="20" width="17" height="5.6" rx="2.8" fill="' + c.ring + '" stroke="' + AV_OUTLINE + '" stroke-width="1.5"/><path d="M14 22 H18" stroke="#ffffff" stroke-width="1.2" stroke-linecap="round" opacity=".8"/>'; },
+  // happy arcs
+  function () { return '<path d="M13.8 24 Q16 21.2 18.2 24M21.8 24 Q24 21.2 26.2 24" fill="none" stroke="' + AV_OUTLINE + '" stroke-width="1.8" stroke-linecap="round"/>'; },
+  // big eyes
+  function () { return '<circle cx="16" cy="23" r="2.7" fill="#ffffff" stroke="' + AV_OUTLINE + '" stroke-width="1.2"/><circle cx="24" cy="23" r="2.7" fill="#ffffff" stroke="' + AV_OUTLINE + '" stroke-width="1.2"/><circle cx="16.6" cy="23.3" r="1.3" fill="' + AV_OUTLINE + '"/><circle cx="24.6" cy="23.3" r="1.3" fill="' + AV_OUTLINE + '"/>'; }
+];
+
+const AV_MOUTHS = [
+  '<path d="M17 28.2 Q20 31.2 23 28.2" fill="none" stroke="' + AV_OUTLINE + '" stroke-width="1.7" stroke-linecap="round"/>',
+  '<path d="M16 27.6 H24 Q24 32.2 20 32.2 Q16 32.2 16 27.6Z" fill="#3a0d1e" stroke="' + AV_OUTLINE + '" stroke-width="1.3"/><rect x="17" y="27.7" width="6" height="1.7" fill="#ffffff"/>',
+  '<path d="M17.2 29.2 Q21 30.6 23.6 27.6" fill="none" stroke="' + AV_OUTLINE + '" stroke-width="1.7" stroke-linecap="round"/>',
+  '<ellipse cx="20" cy="29.2" rx="2" ry="1.7" fill="#3a0d1e" stroke="' + AV_OUTLINE + '" stroke-width="1.2"/>'
+];
+
+function hashName(s) {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+function mixHash(h, salt) {
+  let x = Math.imul(h ^ salt, 0x9e3779b1);
+  x ^= x >>> 15;
+  x = Math.imul(x, 0x85ebca6b);
+  x ^= x >>> 13;
+  return x >>> 0;
+}
+function pick(list, h, salt) { return list[mixHash(h, salt) % list.length]; }
+
+/** Returns an inline SVG avatar for a person; purely decorative (aria-hidden). */
+function avatarSvg(name) {
+  const h = hashName(String(name).trim().toLowerCase());
+  const c = { skin: pick(AV_SKIN, h, 1), hair: pick(AV_HAIR, h, 2), ring: pick(AV_RING, h, 3) };
+  const top = pick(AV_TOPS, h, 4);
+  const eyes = pick(AV_EYES, h, 5);
+  const mouth = pick(AV_MOUTHS, h, 6);
+  const blush = mixHash(h, 7) % 2 === 0;
+  return '<svg viewBox="0 0 40 40" aria-hidden="true" focusable="false">' +
+    '<circle cx="20" cy="20" r="18.5" fill="#0c1022" stroke="' + c.ring + '" stroke-width="2"/>' +
+    '<g stroke="' + AV_OUTLINE + '" stroke-width="1.6" stroke-linejoin="round">' +
+      '<path d="M11 36 Q20 30 29 36" fill="' + c.ring + '"/>' +
+      '<circle cx="20" cy="23" r="11" fill="' + c.skin + '"/>' +
+      top(c) +
+    "</g>" +
+    eyes(c) +
+    (blush ? '<circle cx="13.5" cy="27.2" r="1.7" fill="#ff7aa8" opacity=".6"/><circle cx="26.5" cy="27.2" r="1.7" fill="#ff7aa8" opacity=".6"/>' : "") +
+    mouth +
+  "</svg>";
 }
 
 function optionsHtml(values, selected, placeholder) {
@@ -1121,7 +1199,7 @@ function renderCard(task) {
       '<span class="pill tag-cat"><span class="visually-hidden">Category: </span>' + escapeHtml(task.category) + "</span>" +
     "</div>" +
     '<div class="card-foot">' +
-      '<span class="assignee"><span class="avatar" aria-hidden="true">' + escapeHtml(initials(task.assignee)) + '</span><span class="visually-hidden">Assignee: </span><span class="assignee-name">' + escapeHtml(task.assignee) + "</span></span>" +
+      '<span class="assignee"><span class="avatar" aria-hidden="true">' + avatarSvg(task.assignee) + '</span><span class="visually-hidden">Assignee: </span><span class="assignee-name">' + escapeHtml(task.assignee) + "</span></span>" +
       '<span class="due' + (overdue ? " is-overdue" : "") + '">' + icon(overdue ? "alert" : "calendar", "icon-sm") +
         '<span class="visually-hidden">Due: </span><time datetime="' + escapeHtml(task.dueDate) + '">' + escapeHtml(formatDate(task.dueDate)) + "</time>" +
         (overdue ? '<span class="pill badge-overdue">Overdue</span>' : "") +
