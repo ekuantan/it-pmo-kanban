@@ -38,12 +38,19 @@ jobs:
             exit 1
           fi
 
-      - name: Only allowed network call is FORMSUBMIT_ENDPOINT
+      - name: Only allowed URLs are FORMSUBMIT_ENDPOINT and WHATSAPP_URL
         run: |
-          if grep -nE 'https?://' index.html | grep -v 'FORMSUBMIT_ENDPOINT'; then
-            echo "::error::Found a URL other than FORMSUBMIT_ENDPOINT"
+          # The CSP meta names formsubmit.co in connect-src. WHATSAPP_URL is a link the user clicks, not a fetch. Any other URL fails
+          if grep -nE 'https?://' index.html | grep -v 'FORMSUBMIT_ENDPOINT' | grep -v 'const WHATSAPP_URL = ' | grep -v 'connect-src https://formsubmit.co;'; then
+            echo "::error::Found a URL other than FORMSUBMIT_ENDPOINT or WHATSAPP_URL"
             exit 1
           fi
+
+      - name: CSP script hash matches the inline script
+        run: |
+          actual=$(node -e "const s=require('fs').readFileSync('index.html','utf8');const m=s.match(/<script>([\s\S]*?)<\/script>/);process.stdout.write('sha256-'+require('crypto').createHash('sha256').update(m[1],'utf8').digest('base64'))")
+          echo "Inline script hash: ${actual}"
+          grep -qF "script-src '${actual}'" index.html || { echo "::error::CSP script-src hash is stale. Set it to '${actual}' (see CLAUDE.md)"; exit 1; }
 
       - name: No external resources
         run: |
