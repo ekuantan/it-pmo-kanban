@@ -3,69 +3,80 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="dark">
 <title>IT PMO — Kanban Board (Demo)</title>
 <style>
 /* =========================================================
    1. DESIGN TOKENS
-   Palette: "Banking / Traditional Finance" (navy + trust blue,
-   gold used sparingly). Style: Swiss minimal + data-dense.
+   Theme: neon on near-black ("HUD / Sci-Fi" + "Dark Mode OLED"
+   with neon accents). Cyan is the primary, magenta the accent.
+   Glows are kept subtle so text stays readable (WCAG 4.5:1+).
    ========================================================= */
 :root {
-  /* Brand */
-  --navy-950: #0a1628;
-  --navy-900: #0f172a;
-  --brand-800: #1e3a8a;
-  --brand-700: #1d4ed8;
-  --brand-600: #2563eb;
-  --brand-500: #3b82f6;
-  --gold: #fbbf24;
+  color-scheme: dark;
 
-  /* Surfaces + text (light) */
-  --bg: #f1f5f9;
-  --surface: #ffffff;
-  --surface-2: #f8fafc;
-  --column: #e9eef5;
-  --column-drop: #dbeafe;
-  --ink: #0f172a;
-  --ink-2: #334155;
-  --muted: #475569;
-  --line: #e2e8f0;
-  --line-strong: #cbd5e1;
-  --hover: #f1f5f9;
-  --chip-bg: #eff6ff;
-  --chip-ink: #1e3a8a;
-  --chip-line: #dbeafe;
-  --avatar-bg: #dbeafe;
-  --avatar-ink: #1e3a8a;
-  --ring: #2563eb;
+  /* Neon */
+  --neon-cyan: #22d3ee;
+  --neon-cyan-hi: #67e8f9;
+  --neon-magenta: #ff2bd6;
+  --neon-violet: #a78bfa;
+  --neon-green: #39ff88;
+  --neon-amber: #ffb020;
+  --neon-red: #ff3d6e;
 
-  --header-bg: var(--navy-950);
-  --header-ink: #f8fafc;
-  --header-muted: #cbd5e1;
-  --header-line: rgba(255, 255, 255, .12);
-  --header-ring: var(--gold);
+  --brand-700: var(--neon-cyan-hi);
+  --brand-600: var(--neon-cyan);
+  --brand-500: var(--neon-cyan);
+
+  /* Surfaces + text */
+  --bg: #05060f;
+  --surface: #0c1022;
+  --surface-2: #090c1a;
+  --column: rgba(12, 16, 34, .72);
+  --column-drop: rgba(34, 211, 238, .1);
+  --ink: #e6f1ff;
+  --ink-2: #c3d3ee;
+  --muted: #8fa3c7;
+  --line: #1c2547;
+  --line-strong: #2a3666;
+  --hover: #131a36;
+  --chip-bg: rgba(167, 139, 250, .12);
+  --chip-ink: #d8ccff;
+  --chip-line: rgba(167, 139, 250, .38);
+  --avatar-bg: rgba(34, 211, 238, .14);
+  --avatar-ink: #7ef2ff;
+  --ring: var(--neon-cyan);
+
+  --header-bg: rgba(5, 6, 15, .78);
+  --header-ink: #e6f1ff;
+  --header-muted: #9fb3d9;
+  --header-line: rgba(34, 211, 238, .28);
+  --header-ring: var(--neon-magenta);
 
   /* Status */
-  --st-backlog: #64748b;
-  --st-progress: #2563eb;
-  --st-blocked: #dc2626;
-  --st-done: #16a34a;
+  --st-backlog: var(--neon-violet);
+  --st-progress: var(--neon-cyan);
+  --st-blocked: var(--neon-red);
+  --st-done: var(--neon-green);
 
   /* Priority: stripe / text / background */
-  --crit: #dc2626;  --crit-ink: #b91c1c;  --crit-bg: #fee2e2;
-  --high: #f59e0b;  --high-ink: #a14a06;  --high-bg: #fef3c7;
-  --med:  #3b82f6;  --med-ink:  #1d4ed8;  --med-bg:  #dbeafe;
-  --low:  #94a3b8;  --low-ink:  #475569;  --low-bg:  #f1f5f9;
+  --crit: var(--neon-red);   --crit-ink: #ff8fab; --crit-bg: rgba(255, 61, 110, .14);
+  --high: var(--neon-amber); --high-ink: #ffd166; --high-bg: rgba(255, 176, 32, .13);
+  --med:  var(--neon-cyan);  --med-ink:  #7ef2ff; --med-bg:  rgba(34, 211, 238, .13);
+  --low:  #6b7bb0;           --low-ink:  #b6c3e6; --low-bg:  rgba(107, 123, 176, .16);
 
   /* Feedback */
-  --ok-ink: #15803d;   --ok-bg: #f0fdf4;   --ok-line: #16a34a;
-  --warn-ink: #92400e; --warn-bg: #fffbeb; --warn-line: #f59e0b;
-  --info-ink: #1e3a8a; --info-bg: #eff6ff; --info-line: #2563eb;
-  --danger-bg: #fef2f2; --danger-line: #fecaca;
+  --ok-ink: #7dffb3;   --ok-bg: #08170f;   --ok-line: var(--neon-green);
+  --warn-ink: #ffd166; --warn-bg: #1a1306; --warn-line: var(--neon-amber);
+  --info-ink: #7ef2ff; --info-bg: #061520; --info-line: var(--neon-cyan);
+  --danger-bg: rgba(255, 61, 110, .1); --danger-line: rgba(255, 61, 110, .45);
 
-  --overlay: rgba(15, 23, 42, .55);
-  --on-solid: #ffffff;
+  --overlay: rgba(2, 3, 10, .78);
+  --on-solid: #041018;
+
+  /* Glows */
+  --glow-cyan: 0 0 0 1px rgba(34, 211, 238, .45), 0 0 18px -2px rgba(34, 211, 238, .55);
+  --glow-magenta: 0 0 0 1px rgba(255, 43, 214, .45), 0 0 18px -2px rgba(255, 43, 214, .5);
 
   /* Spacing (dense dashboard scale) */
   --sp-1: 4px;
@@ -83,9 +94,9 @@
   --r-pill: 999px;
 
   /* Elevation (soft, diffused) */
-  --shadow-1: 0 1px 2px rgba(15, 23, 42, .06), 0 1px 3px rgba(15, 23, 42, .04);
-  --shadow-2: 0 6px 16px -4px rgba(15, 23, 42, .12), 0 2px 4px rgba(15, 23, 42, .04);
-  --shadow-3: 0 24px 48px -12px rgba(15, 23, 42, .32);
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, .5);
+  --shadow-2: 0 8px 24px -8px rgba(0, 0, 0, .8);
+  --shadow-3: 0 24px 60px -12px rgba(0, 0, 0, .85);
 
   /* Motion */
   --dur-fast: 120ms;
@@ -100,45 +111,6 @@
 
   --header-h: 64px;
   --tap: 36px;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0b1220;
-    --surface: #131c2e;
-    --surface-2: #0f1828;
-    --column: #0f1828;
-    --column-drop: #142a4d;
-    --ink: #e2e8f0;
-    --ink-2: #cbd5e1;
-    --muted: #94a3b8;
-    --line: #24324a;
-    --line-strong: #334155;
-    --hover: #1a263c;
-    --chip-bg: #12233f;
-    --chip-ink: #bfdbfe;
-    --chip-line: #1e3a66;
-    --avatar-bg: #1e3a66;
-    --avatar-ink: #dbeafe;
-    --ring: #60a5fa;
-
-    --header-bg: #070d19;
-
-    --crit-ink: #fca5a5; --crit-bg: rgba(220, 38, 38, .18);
-    --high-ink: #fcd34d; --high-bg: rgba(245, 158, 11, .16);
-    --med-ink:  #93c5fd; --med-bg:  rgba(59, 130, 246, .18);
-    --low-ink:  #cbd5e1; --low-bg:  rgba(148, 163, 184, .16);
-
-    --ok-ink: #86efac;   --ok-bg: #0f2a1c;
-    --warn-ink: #fcd34d; --warn-bg: #2a2010;
-    --info-ink: #bfdbfe; --info-bg: #12233f; --info-line: #60a5fa;
-    --danger-bg: rgba(220, 38, 38, .14); --danger-line: rgba(248, 113, 113, .4);
-
-    --overlay: rgba(2, 6, 15, .7);
-    --shadow-1: 0 1px 2px rgba(0, 0, 0, .4);
-    --shadow-2: 0 8px 20px -6px rgba(0, 0, 0, .6);
-    --shadow-3: 0 24px 48px -12px rgba(0, 0, 0, .7);
-  }
 }
 
 @media (pointer: coarse) {
@@ -236,7 +208,7 @@ button { cursor: pointer; }
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .2);
 }
 .brand-mark svg { width: 18px; height: 18px; fill: var(--on-solid); }
-.brand-mark svg .accent { fill: var(--gold); }
+.brand-mark svg .accent { fill: var(--neon-magenta); }
 .wordmark {
   margin: 0; font-size: 17px; font-weight: 700; letter-spacing: .01em; line-height: 1.2;
   display: flex; align-items: baseline; gap: var(--sp-2); flex-wrap: wrap;
@@ -251,7 +223,7 @@ button { cursor: pointer; }
   background: rgba(255, 255, 255, .04);
   max-width: 560px;
 }
-.demo-note .icon { color: var(--gold); }
+.demo-note .icon { color: var(--neon-magenta); }
 
 /* =========================================================
    4. LAYOUT + PAGE HEADING
@@ -513,7 +485,6 @@ main {
 .move-btn .icon { transition: transform var(--dur) var(--ease); }
 .move-btn[aria-expanded="true"] .icon { transform: rotate(90deg); }
 .move-btn:hover { background: var(--chip-bg); border-color: var(--chip-line); }
-@media (prefers-color-scheme: dark) { .move-btn { color: var(--chip-ink); } }
 @media (pointer: coarse) { .move-btn, .move-menu button, .confirm-delete button { min-height: 44px; } }
 .move-menu {
   display: flex; flex-wrap: wrap; gap: var(--sp-1);
@@ -636,7 +607,96 @@ main {
 @keyframes toast-out { to { opacity: 0; transform: translateX(16px); } }
 
 /* =========================================================
-   10. RESPONSIVE
+   10. NEON EFFECTS — glows, grid backdrop, light pulses
+   ========================================================= */
+body {
+  background:
+    radial-gradient(56rem 36rem at 8% -12%, rgba(167, 139, 250, .2), transparent 62%),
+    radial-gradient(48rem 34rem at 100% -4%, rgba(34, 211, 238, .16), transparent 60%),
+    radial-gradient(40rem 30rem at 60% 110%, rgba(255, 43, 214, .1), transparent 60%),
+    linear-gradient(rgba(34, 211, 238, .045) 1px, transparent 1px) 0 0 / 32px 32px,
+    linear-gradient(90deg, rgba(34, 211, 238, .045) 1px, transparent 1px) 0 0 / 32px 32px,
+    var(--bg);
+  background-attachment: fixed;
+}
+::selection { background: rgba(255, 43, 214, .35); color: var(--ink); }
+:focus-visible { box-shadow: 0 0 12px rgba(34, 211, 238, .6); }
+
+.app-header {
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  backdrop-filter: blur(14px) saturate(140%);
+  box-shadow: 0 1px 0 rgba(34, 211, 238, .3), 0 10px 32px -14px rgba(34, 211, 238, .45);
+}
+.brand-mark {
+  background: linear-gradient(135deg, var(--neon-cyan), var(--neon-violet));
+  box-shadow: var(--glow-cyan);
+}
+.brand-mark svg { fill: var(--on-solid); }
+.wordmark { text-shadow: 0 0 14px rgba(34, 211, 238, .55); }
+.demo-note { border-color: rgba(255, 43, 214, .35); background: rgba(255, 43, 214, .06); }
+
+.eyebrow { color: var(--neon-cyan); text-shadow: 0 0 10px rgba(34, 211, 238, .5); }
+.page-title {
+  background: linear-gradient(90deg, #e6f1ff 0%, var(--neon-cyan-hi) 55%, #ff8ae6 100%);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 14px rgba(34, 211, 238, .35));
+}
+
+.btn:hover { border-color: var(--neon-cyan); box-shadow: 0 0 12px -2px rgba(34, 211, 238, .45); }
+.btn-primary { box-shadow: var(--glow-cyan); }
+.btn-primary:hover { box-shadow: 0 0 0 1px var(--neon-cyan-hi), 0 0 26px rgba(34, 211, 238, .7); }
+.btn-ghost:hover { background: rgba(34, 211, 238, .08); color: var(--neon-cyan-hi); }
+
+.dot { box-shadow: 0 0 8px var(--dot, var(--st-backlog)); }
+.kpi, .filters {
+  background: rgba(12, 16, 34, .72);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+}
+.kpi[data-status] .kpi-value { color: var(--dot); text-shadow: 0 0 14px var(--dot); }
+.kpi-total .kpi-value { color: var(--neon-cyan-hi); text-shadow: 0 0 14px rgba(34, 211, 238, .7); }
+.meter span {
+  background: linear-gradient(90deg, var(--neon-cyan), var(--neon-magenta));
+  box-shadow: 0 0 10px rgba(255, 43, 214, .6);
+}
+.kpi-overdue:not(.is-zero) { box-shadow: 0 0 0 1px rgba(255, 61, 110, .35), 0 0 22px -6px rgba(255, 61, 110, .6); }
+.kpi-overdue:not(.is-zero) .kpi-value { text-shadow: 0 0 14px rgba(255, 61, 110, .8); }
+
+.control:focus-visible,
+.form-field input:focus-visible, .form-field select:focus-visible, .form-field textarea:focus-visible {
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, .22), 0 0 16px rgba(34, 211, 238, .4);
+}
+
+.column { -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.column-header { box-shadow: 0 -6px 18px -8px var(--col-accent); }
+.column-header h2 { text-shadow: 0 0 10px color-mix(in srgb, var(--col-accent) 60%, transparent); }
+.column.drop-target { box-shadow: inset 0 0 0 1px var(--neon-cyan), 0 0 28px -6px rgba(34, 211, 238, .6); }
+.count-badge { background: var(--surface-2); border-color: color-mix(in srgb, var(--col-accent) 55%, transparent); color: var(--col-accent); }
+
+.card { background: linear-gradient(180deg, #0e1328, var(--surface)); }
+.card::before { box-shadow: 0 0 10px var(--prio); }
+.card:hover {
+  border-color: color-mix(in srgb, var(--prio) 70%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--prio) 40%, transparent), 0 0 24px -6px var(--prio);
+}
+.pill-critical, .pill-high, .pill-medium { border-color: color-mix(in srgb, var(--dot) 45%, transparent); }
+.badge-overdue { animation: neon-pulse 2.4s ease-in-out infinite; }
+@keyframes neon-pulse {
+  0%, 100% { box-shadow: 0 0 0 rgba(255, 61, 110, 0); }
+  50%      { box-shadow: 0 0 12px rgba(255, 61, 110, .75); }
+}
+.move-menu button:hover { box-shadow: 0 0 12px -2px rgba(167, 139, 250, .7); }
+.confirm-delete .yes { box-shadow: 0 0 14px -2px rgba(255, 61, 110, .8); }
+
+.modal {
+  border-color: rgba(34, 211, 238, .35);
+  box-shadow: var(--shadow-3), 0 0 48px -10px rgba(34, 211, 238, .45);
+}
+.modal-header h2 { text-shadow: 0 0 12px rgba(34, 211, 238, .5); }
+.toast { box-shadow: var(--shadow-3), 0 0 22px -6px currentColor; }
+
+/* =========================================================
+   11. RESPONSIVE
    ========================================================= */
 @media (max-width: 1280px) {
   .summary { grid-template-columns: repeat(3, minmax(0, 1fr)); }
