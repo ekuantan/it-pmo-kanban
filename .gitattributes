@@ -1,0 +1,2 @@
+# Keep index.html byte-identical across platforms: the CSP script hash depends on its exact line endings.
+index.html text eol=lf

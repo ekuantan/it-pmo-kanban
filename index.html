@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-90LtwMeQfGqeyTUT7eCSAb7MLmcm7rY8q0ZgkcBmpFI='; style-src 'unsafe-inline'; connect-src https://formsubmit.co; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
 <title>IT PMO — Kanban Board (Demo)</title>
 <style>
 /* =========================================================
@@ -697,6 +699,90 @@ body {
 .toast { box-shadow: var(--shadow-3), 0 0 22px -6px currentColor; }
 
 /* =========================================================
+   10b. MEETING REMINDER + IT CHATBOT
+   ========================================================= */
+.reminder { max-width: 440px; text-align: center; }
+.reminder-body { padding: var(--sp-5) var(--sp-5) var(--sp-4); }
+.reminder-icon {
+  display: grid; place-items: center; width: 56px; height: 56px; margin: 0 auto var(--sp-3);
+  border-radius: var(--r-pill); color: var(--neon-cyan);
+  background: var(--info-bg); border: 1px solid var(--info-line);
+  box-shadow: var(--glow-cyan);
+}
+.reminder-icon .icon { width: 28px; height: 28px; }
+.reminder h2 { margin: 0 0 var(--sp-2); font-size: 19px; text-shadow: 0 0 12px rgba(34, 211, 238, .5); }
+.reminder p { margin: 0; color: var(--ink-2); line-height: 1.55; }
+.reminder-facts {
+  list-style: none; margin: var(--sp-4) 0 0; padding: var(--sp-3) var(--sp-4);
+  display: grid; gap: var(--sp-2); text-align: left;
+  background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r-md);
+}
+.reminder-facts li { display: flex; gap: var(--sp-3); font-size: 14px; }
+.reminder-facts b { min-width: 52px; color: var(--muted); font-weight: 600; }
+.reminder .form-actions { margin: 0; justify-content: center; }
+
+/* Toasts sit above the chatbot button */
+.toast-region { bottom: calc(var(--sp-4) + var(--bot-size) + var(--sp-3)); }
+:root { --bot-size: 64px; --whatsapp: #25d366; }
+
+.chatbot { position: fixed; right: var(--sp-4); bottom: var(--sp-4); z-index: 45; }
+.chatbot-btn {
+  position: relative; width: var(--bot-size); height: var(--bot-size);
+  border: 2px solid var(--neon-cyan); border-radius: var(--r-pill); padding: 0; cursor: pointer;
+  background: radial-gradient(circle at 35% 30%, #12304a, var(--surface) 70%);
+  box-shadow: var(--glow-cyan), var(--shadow-3);
+  animation: bot-float 3s ease-in-out infinite;
+  transition: transform var(--dur) var(--ease);
+}
+.chatbot-btn:hover { transform: scale(1.08); }
+.chatbot-btn:focus-visible { outline: 3px solid var(--neon-magenta); outline-offset: 3px; }
+.chatbot-btn svg { width: 100%; height: 100%; display: block; }
+.bot-eye { animation: bot-blink 4s infinite; transform-origin: center; transform-box: fill-box; }
+.chatbot-ping {
+  position: absolute; top: 2px; right: 2px; width: 14px; height: 14px;
+  border-radius: var(--r-pill); background: var(--whatsapp); border: 2px solid var(--bg);
+}
+.chatbot-bubble {
+  position: absolute; right: calc(var(--bot-size) + var(--sp-3)); bottom: var(--sp-3);
+  white-space: nowrap; padding: var(--sp-2) var(--sp-3); font-size: 13px; font-weight: 600;
+  color: var(--on-solid); background: var(--neon-cyan); border-radius: var(--r-md) var(--r-md) 0 var(--r-md);
+  box-shadow: var(--glow-cyan); pointer-events: none;
+  animation: fade-in var(--dur-slow) var(--ease-out);
+}
+.chatbot.open .chatbot-bubble { display: none; }
+.chatbot-panel {
+  position: absolute; right: 0; bottom: calc(var(--bot-size) + var(--sp-3));
+  width: min(320px, calc(100vw - 2 * var(--sp-4)));
+  background: var(--surface); border: 1px solid rgba(34, 211, 238, .35); border-radius: var(--r-lg);
+  box-shadow: var(--shadow-3), 0 0 36px -10px rgba(34, 211, 238, .45);
+  animation: modal-in var(--dur-slow) var(--ease-out);
+}
+.chatbot-panel[hidden] { display: none; }
+.chatbot-head {
+  display: flex; align-items: center; gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4); border-bottom: 1px solid var(--line);
+}
+.chatbot-head h2 { margin: 0; font-size: 15px; }
+.chatbot-head p { margin: 0; font-size: 12px; color: var(--ok-ink); }
+.chatbot-head .icon-btn { margin-left: auto; }
+.chatbot-msg {
+  margin: var(--sp-4); padding: var(--sp-3) var(--sp-4); font-size: 14px; line-height: 1.5;
+  background: var(--info-bg); border: 1px solid var(--line); border-radius: var(--r-md) var(--r-md) var(--r-md) 0;
+}
+.chatbot-wa {
+  display: flex; align-items: center; justify-content: center; gap: var(--sp-2);
+  margin: 0 var(--sp-4) var(--sp-4); padding: var(--sp-2) var(--sp-4); min-height: 42px;
+  border-radius: var(--r-pill); font-weight: 700; text-decoration: none;
+  color: #041a0c; background: var(--whatsapp);
+  box-shadow: 0 0 16px -4px var(--whatsapp);
+}
+.chatbot-wa:hover { filter: brightness(1.08); }
+.chatbot-wa:focus-visible { outline: 3px solid var(--neon-magenta); outline-offset: 2px; }
+.chatbot-wa svg { width: 20px; height: 20px; }
+@keyframes bot-float { 0%, 100% { translate: 0 0; } 50% { translate: 0 -6px; } }
+@keyframes bot-blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.1); } }
+
+/* =========================================================
    11. RESPONSIVE
    ========================================================= */
 @media (max-width: 1280px) {
@@ -877,6 +963,63 @@ body {
 <!-- TOAST REGION (announced politely to screen readers) -->
 <div class="toast-region" id="toastRegion" role="status" aria-live="polite"></div>
 
+<!-- =========================================================
+     IT MEETING REMINDER — shown once after 10 s of viewing
+     ========================================================= -->
+<div class="modal-backdrop" id="reminderBackdrop" hidden>
+  <div class="modal reminder" role="alertdialog" aria-modal="true" aria-labelledby="reminderTitle" aria-describedby="reminderText" id="reminder">
+    <div class="reminder-body">
+      <div class="reminder-icon" id="reminderIcon"></div>
+      <h2 id="reminderTitle">IT Meeting Reminder</h2>
+      <p id="reminderText"></p>
+      <ul class="reminder-facts" id="reminderFacts"></ul>
+    </div>
+    <div class="form-actions">
+      <button type="button" class="btn btn-primary" id="reminderOkBtn">Got it</button>
+    </div>
+  </div>
+</div>
+
+<!-- =========================================================
+     FLOATING IT CHATBOT — speaks a greeting, links to WhatsApp
+     ========================================================= -->
+<div class="chatbot" id="chatbot">
+  <span class="chatbot-bubble" aria-hidden="true">Need IT help?</span>
+  <div class="chatbot-panel" id="chatbotPanel" role="dialog" aria-labelledby="chatbotTitle" hidden>
+    <div class="chatbot-head">
+      <div>
+        <h2 id="chatbotTitle">IT Assistant</h2>
+        <p>● Online · replies on WhatsApp</p>
+      </div>
+      <button type="button" class="icon-btn" id="chatbotCloseBtn" aria-label="Close IT assistant">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <p class="chatbot-msg" id="chatbotMsg"></p>
+    <a class="chatbot-wa" id="chatbotWaLink" target="_blank" rel="noopener noreferrer">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2c0 1.3.9 2.5 1 2.7.1.2 1.8 2.8 4.4 3.9 1.6.7 2.3.8 3.1.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3z"/></svg>
+      Chat on WhatsApp
+    </a>
+  </div>
+  <button type="button" class="chatbot-btn" id="chatbotBtn" aria-label="Open IT assistant chat" aria-expanded="false" aria-controls="chatbotPanel">
+    <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+      <line x1="32" y1="9" x2="32" y2="16" stroke="#22d3ee" stroke-width="2.5" stroke-linecap="round"/>
+      <circle cx="32" cy="8" r="3.5" fill="#ff2bd6"/>
+      <rect x="13" y="16" width="38" height="30" rx="12" fill="#e6f1ff"/>
+      <rect x="9" y="26" width="5" height="10" rx="2.5" fill="#22d3ee"/>
+      <rect x="50" y="26" width="5" height="10" rx="2.5" fill="#22d3ee"/>
+      <rect x="18" y="22" width="28" height="17" rx="8" fill="#0c1022"/>
+      <ellipse class="bot-eye" cx="26" cy="30" rx="3" ry="3.5" fill="#67e8f9"/>
+      <ellipse class="bot-eye" cx="38" cy="30" rx="3" ry="3.5" fill="#67e8f9"/>
+      <path d="M28 34.5q4 3 8 0" stroke="#67e8f9" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <circle cx="20" cy="40" r="2" fill="#ff8fab" opacity=".8"/>
+      <circle cx="44" cy="40" r="2" fill="#ff8fab" opacity=".8"/>
+      <rect x="22" y="47" width="20" height="9" rx="4" fill="#22d3ee"/>
+    </svg>
+    <span class="chatbot-ping" aria-hidden="true"></span>
+  </button>
+</div>
+
 <!--
   =====================================================================
   FORMSUBMIT CONFIGURATION — READ ME
@@ -889,6 +1032,13 @@ body {
   working regardless.
   Change the email address in ONE place: the FORMSUBMIT_ENDPOINT constant
   at the top of the script below.
+  SECURITY: the endpoint is public in the page source, and anyone can POST
+  to it (FormSubmit's CAPTCHA does not apply to AJAX calls). Use a dedicated
+  mailbox, and after activation swap the address for the random alias
+  FormSubmit emails you, so the real address is never exposed.
+  CSP: the Content-Security-Policy <meta> in <head> allows this script by its
+  SHA-256 hash. Any edit to the script changes the hash, so update it (the
+  command is in CLAUDE.md) or the browser will block the script. CI checks it.
   =====================================================================
 -->
 <script>
@@ -911,6 +1061,20 @@ const STATUS_HINTS = {
 };
 const TOAST_MS = 4500;
 const FORMSUBMIT_TIMEOUT_MS = 15000;
+
+/* IT meeting reminder: shown once per page load after REMINDER_DELAY_MS of
+   the tab being visible. Edit the meeting details here. */
+const REMINDER_DELAY_MS = 10000;
+const IT_MEETING = {
+  date: "2026-11-11",            // next Wednesday (ISO, local date)
+  time: "10:00 am – 11:00 am",
+  room: "Meeting Room 888"
+};
+
+/* Floating IT chatbot: WhatsApp Business link + spoken greeting.
+   WHATSAPP_URL is a plain link the user opens; it is not a background request. */
+const WHATSAPP_URL = "https://wa.me/6598882683";
+const CHATBOT_GREETING = "Hi I am your IT assistant, how can i help you today?";
 
 /** Inline SVG icon paths (24x24 grid, stroked; static markup only). */
 const ICONS = {
@@ -1303,7 +1467,8 @@ async function notifyNewTask(task) {
       signal: controller.signal,
       headers: { "Content-Type": "application/json", Accept: "application/json" },
       body: JSON.stringify({
-        _subject: `[UOB IT PMO] New task ${task.id}: ${task.title}`,
+        // Untrusted text in a mail header: strip control characters and cap the length
+        _subject: `[UOB IT PMO] New task ${task.id}: ${String(task.title).replace(/[\u0000-\u001f\u007f]+/g, " ").slice(0, 80)}`,
         _template: "table",
         _captcha: "false",
         "Task ID": task.id,
@@ -1563,6 +1728,88 @@ function clearFilters() {
 }
 
 /* =========================================================
+   IT MEETING REMINDER — dialog after 10 s of visible time
+   ========================================================= */
+let reminderShown = false;
+let reminderLastFocused = null;
+
+function formatMeetingDate(iso) {
+  const p = iso.split("-").map(Number);
+  return new Date(p[0], p[1] - 1, p[2]).toLocaleDateString("en-GB", {
+    weekday: "long", day: "numeric", month: "long", year: "numeric"
+  });
+}
+
+function startReminderTimer() {
+  // Count only time the tab is actually visible, in 1 s ticks.
+  let visibleMs = 0;
+  const timer = setInterval(function () {
+    if (document.visibilityState !== "visible") return;
+    visibleMs += 1000;
+    // Don't stack on top of the Add Task dialog; wait until it closes.
+    if (visibleMs >= REMINDER_DELAY_MS && document.getElementById("modalBackdrop").hidden) {
+      clearInterval(timer);
+      showMeetingReminder();
+    }
+  }, 1000);
+}
+
+function showMeetingReminder() {
+  if (reminderShown) return;
+  reminderShown = true;
+  const when = formatMeetingDate(IT_MEETING.date);
+  document.getElementById("reminderIcon").innerHTML = icon("calendar");
+  document.getElementById("reminderText").textContent =
+    "There is an IT meeting next Wednesday at " + IT_MEETING.room + ", " + IT_MEETING.time + ".";
+  document.getElementById("reminderFacts").innerHTML =
+    "<li><b>Date</b><span>" + escapeHtml(when) + "</span></li>" +
+    "<li><b>Time</b><span>" + escapeHtml(IT_MEETING.time) + "</span></li>" +
+    "<li><b>Venue</b><span>" + escapeHtml(IT_MEETING.room) + "</span></li>";
+  reminderLastFocused = document.activeElement;
+  document.getElementById("reminderBackdrop").hidden = false;
+  document.getElementById("reminderOkBtn").focus();
+}
+
+function closeMeetingReminder() {
+  document.getElementById("reminderBackdrop").hidden = true;
+  if (reminderLastFocused && document.body.contains(reminderLastFocused)) reminderLastFocused.focus();
+}
+
+/* =========================================================
+   IT CHATBOT — floating button, spoken greeting, WhatsApp
+   ========================================================= */
+function speakGreeting() {
+  if (!("speechSynthesis" in window)) return;
+  const synth = window.speechSynthesis;
+  synth.cancel();
+  const utter = new SpeechSynthesisUtterance(CHATBOT_GREETING);
+  utter.lang = "en-US";
+  utter.rate = 1;
+  utter.pitch = 1.15;
+  const voice = synth.getVoices().find(function (v) { return /^en(-|_)/i.test(v.lang); });
+  if (voice) utter.voice = voice;
+  synth.speak(utter);
+}
+
+function setChatbotOpen(open) {
+  const panel = document.getElementById("chatbotPanel");
+  panel.hidden = !open;
+  document.getElementById("chatbot").classList.toggle("open", open);
+  document.getElementById("chatbotBtn").setAttribute("aria-expanded", String(open));
+  if (open) {
+    document.getElementById("chatbotWaLink").focus();
+  } else if ("speechSynthesis" in window) {
+    window.speechSynthesis.cancel();
+  }
+}
+
+function handleChatbotClick() {
+  const opening = document.getElementById("chatbotPanel").hidden;
+  setChatbotOpen(opening);
+  if (opening) speakGreeting();
+}
+
+/* =========================================================
    INIT
    ========================================================= */
 function init() {
@@ -1605,9 +1852,40 @@ function init() {
   document.getElementById("taskForm").addEventListener("submit", handleSubmit);
   document.getElementById("fTitle").addEventListener("input", updateCounters);
   document.getElementById("fDescription").addEventListener("input", updateCounters);
+
+  // IT meeting reminder (single focusable button, so Tab stays on it)
+  document.getElementById("reminderOkBtn").addEventListener("click", closeMeetingReminder);
+  document.getElementById("reminder").addEventListener("keydown", function (e) {
+    if (e.key === "Escape" || e.key === "Tab") { e.preventDefault(); if (e.key === "Escape") closeMeetingReminder(); }
+  });
+  document.getElementById("reminderBackdrop").addEventListener("click", function (e) {
+    if (e.target === e.currentTarget) closeMeetingReminder();
+  });
+  startReminderTimer();
+
+  // IT chatbot
+  document.getElementById("chatbotMsg").textContent = CHATBOT_GREETING;
+  document.getElementById("chatbotWaLink").href = WHATSAPP_URL;
+  document.getElementById("chatbotBtn").addEventListener("click", handleChatbotClick);
+  document.getElementById("chatbotCloseBtn").addEventListener("click", function () {
+    setChatbotOpen(false);
+    document.getElementById("chatbotBtn").focus();
+  });
+  document.getElementById("chatbot").addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && !document.getElementById("chatbotPanel").hidden) {
+      setChatbotOpen(false);
+      document.getElementById("chatbotBtn").focus();
+    }
+  });
 }
 
-document.addEventListener("DOMContentLoaded", init);
+/* Clickjacking guard. GitHub Pages can't send X-Frame-Options, and a <meta> CSP
+   ignores frame-ancestors, so refuse to run inside another page's frame. */
+if (window.top !== window.self) {
+  document.body.textContent = "This board can't be shown inside another site. Open it directly in its own tab.";
+} else {
+  document.addEventListener("DOMContentLoaded", init);
+}
 </script>
 </body>
 </html>
